@@ -1,7 +1,8 @@
-use create::playground::Playground;
-use beavy::prelude::*;
+use crate::playground::Playground;
+use bevy::prelude::*;
 use itertools::Itertools;
 use rand::prelude::*;
+use rand::rng;
 
 #[derive(Component)]
 pub struct TileText;
@@ -30,30 +31,37 @@ pub fn spawn_tile(commands: &mut Commands, playground: &Playground, pos: &Positi
                 2.0,
             ),
             ..default()
-        }
-            .with_children(|child_builder| {
-                child_builder.spawn(Text2Bundle {
+        })
+        .with_children(|child_builder| {
+            child_builder.spawn((
+                Text2dBundle {
                     text: Text::from_section(
                         "2",
-                        TextStyle{font_size:50.0, color:Color::rgb(0.2, 0.2, 0.2)},
-                        ..default()
-                    )
-                }, transform: Transform::from_xyz(0.0, 0.0, 1.0)
-            
-            }) .insert(TileText)
-        )
-        .insert(Points{value:2})
-        .insert(pos);
+                        TextStyle {
+                            font_size: 50.0,
+                            color: Color::rgb(0.2, 0.2, 0.2),
+                            ..default()
+                        },
+                    ),
+                    transform: Transform::from_xyz(0.0, 0.0, 1.0),
+                    ..default()
+                },
+                TileText,
+            ));
+        })
+        .insert(Points { value: 2 })
+        .insert(*pos);
 }
 
-pub fn spawn_tiles(mut commands: &mut Commands, query_playground: Query<&Playground>) {
+pub fn spawn_tiles(mut commands: Commands, query_playground: Query<&Playground>) {
     let playground = query_playground.single();
-    let mut rng = rand::rng();
-    let starting_tiles: Vec<u8,u8> = (0..playground.grid).cartesian_product(0..playground.grid).
-        choose_multiple(&mut rng, 2);
+    let mut rng = rng();
+    let starting_tiles: Vec<(u8, u8)> = (0..playground.grid)
+        .cartesian_product(0..playground.grid)
+        .choose_multiple(&mut rng, 2);
 
-    for (x,y) in starting_tiles.iter {
-        let pos = Position{x:*x, y:*y};
-        spawn_tile(&mut commands, playground, pos)
+    for (x, y) in starting_tiles.iter() {
+        let pos = Position { x: *x, y: *y };
+        spawn_tile(&mut commands, playground, &pos);
     }
 }
