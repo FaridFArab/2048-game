@@ -1,8 +1,11 @@
 use crate::playground::Playground;
 use bevy::prelude::*;
+use bevy::window::CursorIcon::Move;
 use itertools::Itertools;
 use rand::prelude::*;
 use rand::rng;
+use crate::events::NewTileEvent;
+use crate::input::MoveTiles;
 
 #[derive(Component)]
 pub struct TileText;
@@ -63,5 +66,61 @@ pub fn spawn_tiles(mut commands: Commands, query_playground: Query<&Playground>)
     for (x, y) in starting_tiles.iter() {
         let pos = Position { x: *x, y: *y };
         spawn_tile(&mut commands, playground, &pos);
+    }
+}
+
+pub fn move_tiles(
+    mut commands: Commands,
+    input: Res<ButtonInput<KeyCode>>,
+    mut tiles:Query<(Entity, &mut Position, &mut Points)>,
+    query_playground: Query<&Playground>,
+    mut tile_writer: EventWriter<NewTileEvent>,
+    asset_server: Res<AssetServer>
+){
+    let playground = query_playground.single();
+    let shift_direction = input
+        .get_just_pressed()
+        .find_map(|key_code| MoveTiles::try_from(key_code).ok());
+    if let Some(move_tiles) = shift_direction {
+        let mut it = tiles
+            .iter_mut()
+            .sorted_by(|a, b| move_tiles.sort(&a.1, &b.1))
+            .peekable();
+        let mut column: u8 = 0;
+        let mut any_tile_moved = false;
+
+        while let Some(mut tile) = it.next(){
+            let original_pos = tile.1.clone();
+            move_tiles.set_column(playground.grid, &mut tile.1, column);
+
+            if original_pos != *tile.1 {
+                any_tile_moved = true;
+            }
+            if let Some(peeked_tile) = it.peek(){
+                if move_tiles.get_row(&tile.1) != move_tiles.get_row(&peeked_tile.1){
+                    column = 0;
+                } else if tile.2.value != peeked_tile.2.value{
+                    column += 1;
+                } else {
+                    let next_tile = it.next().expect("expected peeked tile");
+                    tile.2.value *= 2;
+
+                    commands.entity(next_tile.0).despawn_recursive();
+                    
+                    if let Some(more_tile) = it.peek(){
+                        if move_tiles.get_row(&tile.1) != move_tiles.get_row(&more_tile.1){
+                            column = 0;
+                        } else {
+                            column += 1;
+                        }
+                    }
+                }
+            }
+        }
+        if any_tile_moved{
+            tile_writer.send(NewTileEvent);
+        } else {
+            println!("no tile has moved");
+        }
     }
 }
