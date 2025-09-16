@@ -2,10 +2,13 @@ mod setup;
 mod input;
 mod playground;
 mod tile;
+mod events;
 
 use setup::setup;
 use playground::spawn_playground;
-use tile::spawn_tiles;
+use tile::{spawn_tiles, move_tiles};
+use events::NewTileEvent;
+use crate::input::MoveTiles;
 
 
 use bevy::prelude::*;
@@ -18,6 +21,8 @@ fn main() {
             ..default()
         }), ..default()
     }))
+        .add_event::<NewTileEvent>()
         .add_systems(Startup,(setup,spawn_playground,spawn_tiles).chain())
+        .add_systems(Update,{move_tiles})
         .run();
 }
