@@ -147,3 +147,29 @@ pub fn render_tiles(
         transform.translation.y = playground.tile_pos(pos.y)
     }
 }
+
+pub fn new_tile_handler(
+    mut tile_reader: EventReader<NewTileEvent>,
+    mut commands: Commands,
+    query_playground: Query<&Playground>,
+    tiles: Query<&Position>
+){
+    let playground = query_playground.single();
+    for _ in tile_reader.read(){
+        let mut rng = rand::rng();
+        let possible_position: Option<Position> = (0..playground.grid).cartesian_product(0..playground.grid).filter_map(|tile_pos|){
+            let new_position = Position{
+                x: tile_pos.0,
+                y: tile_pos.1,
+            };
+            match tiles.iter().find(|&&pos| post == new_pos {
+                Some(_) => None,
+                None => Some(new_pos),
+            }
+        })
+        .choose(&mut rng);
+        if let Some(pos) = possible_position {
+            spawn_tile(&mut commands, playground, pos);
+        }
+        }
+    }
