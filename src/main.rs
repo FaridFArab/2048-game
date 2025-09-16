@@ -6,7 +6,7 @@ mod events;
 
 use setup::setup;
 use playground::spawn_playground;
-use tile::{spawn_tiles, move_tiles};
+use tile::{spawn_tiles, move_tiles, render_tiles, render_tile_points};
 use events::NewTileEvent;
 use crate::input::MoveTiles;
 
@@ -23,6 +23,10 @@ fn main() {
     }))
         .add_event::<NewTileEvent>()
         .add_systems(Startup,(setup,spawn_playground,spawn_tiles).chain())
-        .add_systems(Update,{move_tiles})
+        .add_systems(Update,(
+            render_tile_points,
+            move_tiles,
+            render_tile_points,
+        ))
         .run();
 }

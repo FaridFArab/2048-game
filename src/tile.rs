@@ -106,7 +106,7 @@ pub fn move_tiles(
                     tile.2.value *= 2;
 
                     commands.entity(next_tile.0).despawn_recursive();
-                    
+
                     if let Some(more_tile) = it.peek(){
                         if move_tiles.get_row(&tile.1) != move_tiles.get_row(&more_tile.1){
                             column = 0;
@@ -122,5 +122,28 @@ pub fn move_tiles(
         } else {
             println!("no tile has moved");
         }
+    }
+}
+
+pub fn render_tile_points(
+    mut texts: Query<&mut Text, With<TileText>>,
+    tiles : Query<(&Points, &Children)>,
+){
+    for (points, children) in tiles.iter() {
+        if let Some(entity) = children.first(){
+            let mut text = texts.get_mut(*entity).expect("expected text");
+            let text_section = text.sections.first_mut().expect("expected editable");
+            text_section.value = points.value.to_string()
+        }
+    }
+}
+pub fn render_tiles(
+    mut tiles: Query<(&mut Transform, &Position), Changed<Position>>,
+    query_playground: Query<&Playground>,
+){
+    let playground = query_playground.single();
+    for (mut transform, pos) in tiles.iter_mut() {
+        transform.translation.x = playground.tile_pos(pos.x);
+        transform.translation.y = playground.tile_pos(pos.y)
     }
 }
