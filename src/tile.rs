@@ -137,6 +137,7 @@ pub fn render_tile_points(
         }
     }
 }
+
 pub fn render_tiles(
     mut tiles: Query<(&mut Transform, &Position), Changed<Position>>,
     query_playground: Query<&Playground>,
@@ -156,20 +157,23 @@ pub fn new_tile_handler(
 ){
     let playground = query_playground.single();
     for _ in tile_reader.read(){
-        let mut rng = rand::rng();
-        let possible_position: Option<Position> = (0..playground.grid).cartesian_product(0..playground.grid).filter_map(|tile_pos|){
-            let new_position = Position{
-                x: tile_pos.0,
-                y: tile_pos.1,
-            };
-            match tiles.iter().find(|&&pos| post == new_pos {
-                Some(_) => None,
-                None => Some(new_pos),
-            }
-        })
-        .choose(&mut rng);
+        let mut rng = rng();
+        let possible_position: Option<Position> = (0..playground.grid)
+            .cartesian_product(0..playground.grid)
+            .filter_map(|tile_pos| {
+                let new_position = Position{
+                    x: tile_pos.0,
+                    y: tile_pos.1,
+                };
+                match tiles.iter().find(|&&pos| pos == new_position) {
+                    Some(_) => None,
+                    None => Some(new_position),
+                }
+            })
+            .choose(&mut rng);
+
         if let Some(pos) = possible_position {
-            spawn_tile(&mut commands, playground, pos);
-        }
+            spawn_tile(&mut commands, playground, &pos);
         }
     }
+}
