@@ -110,7 +110,7 @@ pub fn move_tiles(
                     score.value += tile.2.value;
                     highest_tile_value = highest_tile_value.max(tile.2.value);
 
-                    if tile.2.value == 32{
+                    if tile.2.value == 2048{
                         handle_game_win(&mut commands,&*asset_server);
                     }
 
@@ -188,14 +188,14 @@ pub fn new_tile_handler(
 }
 
 fn handle_game_win(commands: &mut Commands, asset_server: &AssetServer) {
-    commands.spawn(TextBundle{
-        style: Style{
+    commands.spawn(TextBundle {
+        style: Style {
             position_type: PositionType::Absolute,
             right: Val::Px(10.0),
             top: Val::Px(10.0),
             ..Default::default()
         },
-        text:Text{
+        text: Text {
             sections: vec![
                 TextSection {
                     value: "You Win!".to_string(),
@@ -205,8 +205,8 @@ fn handle_game_win(commands: &mut Commands, asset_server: &AssetServer) {
                         ..default()
                     },
                 },
-            ]
-                ..Default::default()
+            ],
+            ..Default::default()
         },
         ..Default::default()
     });
