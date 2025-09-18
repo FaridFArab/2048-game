@@ -6,6 +6,7 @@ use rand::prelude::*;
 use rand::rng;
 use crate::events::NewTileEvent;
 use crate::input::MoveTiles;
+use crate::score::Score;
 
 #[derive(Component)]
 pub struct TileText;
@@ -75,6 +76,7 @@ pub fn move_tiles(
     mut tiles:Query<(Entity, &mut Position, &mut Points)>,
     query_playground: Query<&Playground>,
     mut tile_writer: EventWriter<NewTileEvent>,
+    mut score: ResMut<Score>,
     asset_server: Res<AssetServer>
 ){
     let playground = query_playground.single();
@@ -104,6 +106,7 @@ pub fn move_tiles(
                 } else {
                     let next_tile = it.next().expect("expected peeked tile");
                     tile.2.value *= 2;
+                    score.value += tile.2.value;
 
                     commands.entity(next_tile.0).despawn_recursive();
 
