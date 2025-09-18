@@ -83,6 +83,7 @@ pub fn move_tiles(
     let shift_direction = input
         .get_just_pressed()
         .find_map(|key_code| MoveTiles::try_from(key_code).ok());
+    let mut highest_tile_value = 0;
     if let Some(move_tiles) = shift_direction {
         let mut it = tiles
             .iter_mut()
@@ -107,6 +108,11 @@ pub fn move_tiles(
                     let next_tile = it.next().expect("expected peeked tile");
                     tile.2.value *= 2;
                     score.value += tile.2.value;
+                    highest_tile_value = highest_tile_value.max(tile.2.value);
+
+                    if tile.2.value == 32{
+                        handle_game_win(&mut commands,&*asset_server);
+                    }
 
                     commands.entity(next_tile.0).despawn_recursive();
 
@@ -179,4 +185,29 @@ pub fn new_tile_handler(
             spawn_tile(&mut commands, playground, &pos);
         }
     }
+}
+
+fn handle_game_win(commands: &mut Commands, asset_server: &AssetServer) {
+    commands.spawn(TextBundle{
+        style: Style{
+            position_type: PositionType::Absolute,
+            right: Val::Px(10.0),
+            top: Val::Px(10.0),
+            ..Default::default()
+        },
+        text:Text{
+            sections: vec![
+                TextSection {
+                    value: "You Win!".to_string(),
+                    style: TextStyle {
+                        font_size: 40.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                },
+            ]
+                ..Default::default()
+        },
+        ..Default::default()
+    });
 }
