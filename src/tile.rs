@@ -131,10 +131,10 @@ pub fn move_tiles(
         } else {
             println!("no tile has moved");
             
-            let immut_tiles_data: Vec<(Position, u32)> = tiles.iter().map(|(_,pospoints)|(*pos, points.value))
+            let immut_tiles_data: Vec<(Position, u32)> = tiles.iter().map(|(_,pos,points)|(*pos, points.value))
                 .collect();
             
-            if !has_available_moves(&immut_tiles_data, playground_grid){
+            if !has_available_moves(&immut_tiles_data, playground.grid){
                 handle_game_over(&mut commands,&*asset_server);
             }
         }
