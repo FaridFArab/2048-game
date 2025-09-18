@@ -130,6 +130,13 @@ pub fn move_tiles(
             tile_writer.send(NewTileEvent);
         } else {
             println!("no tile has moved");
+            
+            let immut_tiles_data: Vec<(Position, u32)> = tiles.iter().map(|(_,pospoints)|(*pos, points.value))
+                .collect();
+            
+            if !has_available_moves(&immut_tiles_data, playground_grid){
+                handle_game_over(&mut commands,&*asset_server);
+            }
         }
     }
 }
@@ -199,6 +206,61 @@ fn handle_game_win(commands: &mut Commands, asset_server: &AssetServer) {
             sections: vec![
                 TextSection {
                     value: "You Win!".to_string(),
+                    style: TextStyle {
+                        font_size: 40.0,
+                        color: Color::WHITE,
+                        ..default()
+                    },
+                },
+            ],
+            ..Default::default()
+        },
+        ..Default::default()
+    });
+}
+
+fn has_available_moves(tiles: &[(Position, u32)], grid_size: u8) -> bool {
+    let mut positions = vec![vec![None; grid_size as usize]; grid_size as usize];
+    for (pos,value) in tiles.iter(){
+        positions[pos.x as usize][pos.y as usize] = Some(*value);
+    }
+
+    for x in 0..grid_size{
+        for y in 0..grid_size{
+            if positions[x as usize][y as usize].is_none() {
+                return true;
+            }
+            let current_value = positions[x as usize][y as usize].unwrap();
+            if x>0 && positions[(x-1) as usize][y as usize] == Some(current_value) {
+                return true;
+            }
+            if y>0 && positions[x as usize][(y-1) as usize] == Some(current_value) {
+                return true;
+            }
+            if x < grid_size-1 && positions[(x+1) as usize][y as usize] == Some(current_value) {
+                return true;
+            }
+            if y < grid_size-1 && positions[x as usize][(y+1) as usize] == Some(current_value) {
+                return true;
+            }
+        }
+    }
+    false
+}
+
+
+fn handle_game_over(commands: &mut Commands, asset_server: &AssetServer) {
+    commands.spawn(TextBundle {
+        style: Style {
+            position_type: PositionType::Absolute,
+            right: Val::Px(10.0),
+            top: Val::Px(10.0),
+            ..Default::default()
+        },
+        text: Text {
+            sections: vec![
+                TextSection {
+                    value: "Game Over!".to_string(),
                     style: TextStyle {
                         font_size: 40.0,
                         color: Color::WHITE,
